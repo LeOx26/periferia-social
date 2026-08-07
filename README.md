@@ -41,12 +41,11 @@ El documento de arquitectura completo, con las decisiones y sus alternativas des
 
 ## Si solo tienes diez minutos
 
-1. `docker compose up -d --build` y espera a que `docker compose ps` muestre los cinco contenedores.
-2. Abre http://localhost:8082/docs y mira el contrato de la API.
-3. `pnpm install && pnpm --filter @periferia/core build && pnpm --filter web dev`.
-4. Entra en http://localhost:5173 (las credenciales vienen precargadas), publica algo y da un like.
-5. Abre una segunda ventana en incógnito con `mafe`. **Da like en una y mira el contador en la otra.**
-6. Lee [Microservicios frente a monolito modular](#microservicios-frente-a-monolito-modular) y [Reutilización medida](#reutilización-entre-web-y-móvil-medida).
+1. `docker compose up -d --build` — un solo comando, sin instalar nada más. Espera a que `docker compose ps` muestre los seis contenedores.
+2. Entra en http://localhost:5173. Las credenciales vienen precargadas: pulsa Entrar, publica algo y da un like.
+3. Abre una segunda ventana en incógnito y entra con `mafe`. **Da like en una y mira el contador saltar en la otra**, sin recargar.
+4. Mira el contrato de la API en http://localhost:8082/docs y el dashboard en http://localhost:3000.
+5. Lee [Microservicios frente a monolito modular](#microservicios-frente-a-monolito-modular) y [Reutilización medida](#reutilización-entre-web-y-móvil-medida).
 
 Lo que mejor resume el trabajo son esos dos apartados y el archivo [`packages/core/src/hooks/feedCache.ts`](packages/core/src/hooks/feedCache.ts), donde vive la reconciliación entre el update optimista y el evento del WebSocket.
 
@@ -54,23 +53,30 @@ Lo que mejor resume el trabajo son esos dos apartados y el archivo [`packages/co
 
 ## Arranque
 
-**Requisitos:** Docker y pnpm. **No hace falta tener Java ni Maven instalados**: los servicios se compilan dentro de Docker con un build multi-stage. Para el frontend, Node 20 o superior (desarrollado y verificado con Node 26). Para el simulador de iOS, Xcode; la app móvil también se puede abrir en el navegador sin él.
+**Para ver la aplicación funcionando solo hace falta Docker.** Los microservicios y la web se compilan dentro de contenedores con builds multi-stage: no necesitas Java, ni Maven, ni Node instalados en tu máquina.
+
+Node 20+ y pnpm solo hacen falta para desarrollar o para arrancar la app móvil (verificado con Node 26 y pnpm 11). Para el simulador de iOS, Xcode; la app móvil también se abre en el navegador sin él.
+
+### Todo en un comando
 
 ```bash
-# 1. Backend completo: Postgres, los dos servicios, Prometheus y Grafana
 docker compose up -d --build
+```
 
-# 2. Dependencias del monorepo y compilación del paquete compartido
+Levanta seis contenedores —Postgres, los dos microservicios, la web, Prometheus y Grafana— y **la aplicación queda usable en http://localhost:5173 sin instalar nada más**. Ni Node, ni pnpm, ni Java.
+
+### Desarrollo, o para arrancar el móvil
+
+```bash
 pnpm install
 pnpm --filter @periferia/core build
 
-# 3. Web
-pnpm --filter web dev            # http://localhost:5173
-
-# 4. Móvil (elige una)
+pnpm --filter web dev            # web con recarga en caliente, :5173
 pnpm --filter mobile ios         # simulador de iOS
-pnpm --filter mobile web         # navegador, sin necesidad de Xcode
+pnpm --filter mobile web         # la app móvil en el navegador, sin Xcode
 ```
+
+> **La app móvil no está en el compose.** Un simulador de iOS no se puede contenedorizar, y meter solo Expo Web daría una impresión falsa de que la app corre ahí. Se arranca con `pnpm`, como corresponde a una aplicación nativa.
 
 ### Credenciales
 

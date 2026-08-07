@@ -326,7 +326,13 @@ La pirámide es deliberadamente ancha en la base: las reglas de negocio viven en
 
 ### `docker compose up`
 
-Levanta: `postgres` (con ambas bases creadas por script de init), `auth-service`, `social-service`, `prometheus`, `grafana`. Las apps de front se levantan aparte con pnpm (documentado); no se dockerizan porque el enunciado solo exige dockerizar los microservicios y la base de datos.
+Levanta seis contenedores: `postgres` (con ambas bases creadas por script de init), `auth-service`, `social-service`, `web`, `prometheus` y `grafana`. La aplicación queda usable en `http://localhost:5173` **sin instalar Java, Node ni pnpm**.
+
+El enunciado solo exige dockerizar los microservicios y la base de datos. Se incluyó también la web porque el coste es bajo —un build multi-stage que compila `packages/core` y sirve el resultado estático con nginx— y elimina por completo la fricción de puesta en marcha para quien evalúe.
+
+**La app móvil no se incluye a propósito.** Un simulador de iOS no se puede contenedorizar, y meter únicamente Expo Web daría la impresión falsa de que la aplicación nativa corre ahí. Se arranca con `pnpm --filter mobile ios`.
+
+Nota sobre la configuración de la web: Vite compila las variables `VITE_*` dentro del bundle, así que las URLs del backend se fijan como `ARG` en tiempo de construcción. Apuntan a `localhost` porque quien resuelve esas direcciones es el navegador del evaluador, no el contenedor; los nombres internos de la red de Docker no resolverían desde fuera. Para un despliegue real se serviría la configuración en tiempo de ejecución, por ejemplo con un `config.js` generado al arrancar.
 
 ### Artefactos
 
