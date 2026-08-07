@@ -1,0 +1,35 @@
+{
+  "name": "@periferia/core",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "zod": "^4.4.3",
+    "zustand": "^5.0.14"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.101.4",
+    "react": ">=19.2.3"
+  },
+  "devDependencies": {
+    "@tanstack/react-query": "^5.101.4",
+    "react": "^19.2.8",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  }
+}
