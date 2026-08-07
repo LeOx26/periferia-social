@@ -1,0 +1,37 @@
+# Material interno de la empresa — no publicar
+Prueba_Tecnica_Lider_Tecnico_FullStack.pdf
+PRUEBA_TECNICA.md
+
+# Java / Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+*.class
+
+# Node
+node_modules/
+dist/
+build/
+.vite/
+*.tsbuildinfo
+
+# Expo / React Native
+.expo/
+.expo-shared/
+apps/mobile/ios/
+apps/mobile/android/
+*.jks
+*.p8
+*.p12
+*.mobileprovision
+
+# Entorno
+.env
+.env.local
+*.local
+
+# Sistema / editores
+.DS_Store
+.idea/
+.vscode/
+*.iml
+*.log
