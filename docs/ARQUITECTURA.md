@@ -294,7 +294,7 @@ react-navigation + expo-secure-store. Alcance reducido según el enunciado.
 - **Login**
 - **Feed** con like y actualización en tiempo real
 
-Solo `View`, `Text`, `Pressable`, `FlatList` y `StyleSheet`. **Cero lógica de negocio**: todos los hooks y el cliente de API se importan de `core`. Expo Web habilitado para que el evaluador pueda abrirla sin instalar Xcode.
+Solo `View`, `Text`, `Pressable`, `FlatList` y `StyleSheet`. **Cero lógica de negocio**: todos los hooks y el cliente de API se importan de `core`. Expo Web queda habilitado para poder abrir la app en un navegador sin necesidad de Xcode ni del SDK de Android.
 
 ## 9. Observabilidad
 
@@ -314,7 +314,7 @@ Solo `View`, `Text`, `Pressable`, `FlatList` y `StyleSheet`. **Cero lógica de n
 | Integración | Testcontainers (1 por servicio) | auth: login real contra Postgres real. social: crear post → like → contador correcto y evento emitido. |
 | Core (TS) | Vitest | `useLikePost` optimista con rollback; reconciliación de `useRealtimeLikes` |
 
-Si el segundo día aprieta, lo primero que se recorta es Testcontainers y queda documentado como pendiente en el README.
+La pirámide es deliberadamente ancha en la base: las reglas de negocio viven en el dominio (sección 6), así que los tests más valiosos no necesitan levantar Spring ni la base de datos y corren en milisegundos. Testcontainers se reserva para verificar lo único que no se puede simular con fidelidad: el comportamiento real de Postgres frente a la restricción `UNIQUE(post_id, user_id)` bajo concurrencia.
 
 ## 11. Entrega
 
@@ -328,16 +328,16 @@ Levanta: `postgres` (con ambas bases creadas por script de init), `auth-service`
 2. **`README.md`** — instalación en un comando, credenciales de prueba, URLs de Swagger/Grafana, y la **sección de trade-offs**: microservicios vs. monolito modular, por qué no hay procedimientos almacenados, bases separadas y consistencia eventual, token en el query param del WebSocket, feed completo vs. literal, y **"qué haría con más tiempo"** (arquitectura event-driven para likes, proyección de autores vía eventos, API gateway, rate limiting, refresh tokens, tracing distribuido)
 3. **`docs/ARQUITECTURA.md`** — fuente del PDF exigido, exportado a PDF
 4. **Scripts de BD** — las migraciones Flyway con los usuarios predefinidos
-5. **Video demo** — lo graba Leonel: `docker compose up`, Swagger, web (login → perfil → publicar → like), dos ventanas mostrando el like en tiempo real, simulador de iOS, y el dashboard de Grafana
+5. **Video demo** — recorrido por `docker compose up`, Swagger, la web (login → perfil → publicar → like), dos ventanas en paralelo mostrando el like propagarse en tiempo real, la app en el simulador de iOS, y el dashboard de Grafana
 
-### Reparto de los dos días
+### Plan de ejecución
 
 | Bloque | Trabajo |
 |---|---|
 | Día 1 mañana | Monorepo, docker-compose, Postgres + Flyway + seed, `auth-service` completo con Swagger y tests |
 | Día 1 tarde | `social-service`: posts, likes, WebSocket, observabilidad, tests |
 | Día 2 mañana | `packages/core` + `apps/web` completa |
-| Día 2 tarde | `apps/mobile`, Grafana, README de trade-offs, PDF, ensayo del video |
+| Día 2 tarde | `apps/mobile`, Grafana, README de trade-offs, PDF y video |
 
 ## 12. Fuera de alcance (declarado)
 
