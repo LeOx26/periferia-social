@@ -1,0 +1,31 @@
+<configuration>
+  <springProperty scope="context" name="appName" source="spring.application.name"/>
+
+  <!-- Desarrollo local: legible por humanos, con el correlationId a la vista. -->
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} %-5level [%X{correlationId:-sin-id}] %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- En contenedor: JSON de una línea, que es lo que consume un agregador de logs
+       (Loki, Elasticsearch, CloudWatch) sin necesidad de parsear con expresiones regulares. -->
+  <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+      <includeMdcKeyName>correlationId</includeMdcKeyName>
+      <customFields>{"service":"${appName}"}</customFields>
+    </encoder>
+  </appender>
+
+  <springProfile name="docker">
+    <root level="INFO">
+      <appender-ref ref="JSON"/>
+    </root>
+  </springProfile>
+
+  <springProfile name="!docker">
+    <root level="INFO">
+      <appender-ref ref="CONSOLE"/>
+    </root>
+  </springProfile>
+</configuration>
