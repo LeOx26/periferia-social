@@ -1,0 +1,41 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: auth-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/authdb}
+    username: ${DB_USER:periferia}
+    password: ${DB_PASSWORD:periferia}
+  jpa:
+    hibernate:
+      # El esquema lo gobierna Flyway; Hibernate solo comprueba que las entidades
+      # cuadran. Dejar que Hibernate genere tablas junto a migraciones versionadas
+      # es una fuente clásica de divergencia entre entornos.
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+security:
+  jwt:
+    # Debe ser idéntico al de social-service: él verifica en local lo que aquí se firma.
+    secret: ${JWT_SECRET:desarrollo-secreto-local-de-al-menos-32-bytes!}
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:60}
+
+springdoc:
+  swagger-ui:
+    path: /docs
+  api-docs:
+    path: /v3/api-docs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
