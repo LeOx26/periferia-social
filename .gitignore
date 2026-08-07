@@ -2,6 +2,9 @@
 Prueba_Tecnica_Lider_Tecnico_FullStack.pdf
 PRUEBA_TECNICA.md
 
+# Planes de trabajo — andamiaje interno, no forma parte de la entrega
+.plans/
+
 # Java / Maven
 target/
 !.mvn/wrapper/maven-wrapper.jar

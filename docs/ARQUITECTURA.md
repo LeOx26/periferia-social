@@ -33,21 +33,27 @@ Consecuencia práctica: se ha recortado alcance antes que rigor. La sección 12 
 | D9 | **Feed muestra todas las publicaciones**, incluidas las propias, marcadas y no likeables | Ocultar las propias (lectura literal del enunciado) | Ocultar el post que acabas de crear es confuso y perjudica la demo. El espíritu del requisito ("interactúas con otros") se hace cumplir donde importa: no puedes dar like a tu propia publicación. |
 | D10 | **Observabilidad incluida** (Actuator, Prometheus, Grafana, logs con correlation-id) | Recortarla por tiempo | Es lo que distingue un sistema operable de uno que solo funciona en la máquina del autor. Además da el mejor plano del video demo. |
 | D11 | **Móvil en Simulador de iOS + Expo Web** | Dispositivo físico con Expo Go | El simulador comparte `localhost` con el host (cero configuración de IP) y se graba con captura de pantalla nativa. Expo Web permite al evaluador abrir la app sin instalar Xcode. |
-| D12 | **Java 21 LTS**, no el Java 26 instalado en la máquina | Compilar solo dentro de Docker; usar Java 26 | Java 26 salió en julio de 2026; ByteBuddy/Mockito y Lombok suelen romper con bytecode de JDKs recién publicados y no hay margen para depurar eso en 2 días. Java 21 es el más probado con Spring Boot 3.x. Compilar solo en Docker haría cada iteración de tests de minutos en vez de segundos. |
+| D12 | **Java 21 LTS** | Java 26; compilar solo dentro de Docker | Spring Boot 4.1 soporta oficialmente hasta Java 26, pero 26 no es LTS y el ecosistema de pruebas (ByteBuddy/Mockito) suele ir por detrás con JDKs recientes. Java 21 es LTS, es el objetivo más probado del ecosistema y su imagen base de Docker es ubicua. Compilar solo en Docker haría que cada iteración de tests tardara minutos en vez de segundos. |
+| D13 | **Sin Lombok** | Lombok para entidades y DTOs | Lombok es un procesador de anotaciones que rompe con frecuencia al cambiar de versión de JDK. Los `record` de Java cubren los DTOs sin dependencias, y las entidades JPA son pocas. Se elimina un riesgo de build a cambio de escribir unos cuantos getters. |
 
 ## 2b. Stack y versiones
 
+Versiones verificadas contra `start.spring.io` y los metadatos de Maven Central el 2026-08-07.
+
 | Pieza | Versión | Nota |
 |---|---|---|
-| JDK local | **Corretto 21 LTS** | `brew install --cask corretto@21`. Convive con el Corretto 26 ya instalado; se selecciona por `JAVA_HOME`. |
-| Spring Boot | 3.5.x | Maven Wrapper (`mvnw`) versionado en el repo — no hay `mvn` en la máquina y no debe hacer falta. |
-| Build backend | Maven multi-módulo por servicio | Cada servicio con su `pom.xml` y su `Dockerfile` independientes: son unidades desplegables separadas. |
-| Imagen Docker | `maven:3.9-eclipse-temurin-21` (build) → `eclipse-temurin:21-jre` (runtime) | Multi-stage. Fija el JDK del evaluador, así que su máquina no importa. |
-| Node | 26 (ya instalado) | — |
+| JDK | **21 LTS** (`openjdk@21` de Homebrew) | Convive con el Corretto 26 ya presente; se selecciona por `JAVA_HOME`. Se usa la fórmula y no el cask porque el cask instala un `.pkg` que exige privilegios de administrador. |
+| Spring Boot | **4.1.0** | La rama 3.x ya no se ofrece en `start.spring.io`; entregar sobre una versión sin soporte no sería defendible. |
+| Build backend | Maven Wrapper (`mvnw`) por servicio | Versionado en el repo: no hace falta tener Maven instalado. Cada servicio tiene su `pom.xml` y su `Dockerfile` — son unidades desplegables independientes, no módulos de un mismo build. |
+| springdoc-openapi | **3.1.0** | La serie 2.x es para Spring Boot 3.x. |
+| jjwt | **0.13.0** | Firma y verificación HS256. |
+| logstash-logback-encoder | **9.0** | Logs en JSON. |
+| Imagen Docker | `maven:3-eclipse-temurin-21` (build) → `eclipse-temurin:21-jre` (runtime) | Multi-stage. Fija el JDK, así que la máquina del evaluador es irrelevante. |
+| Node | 26 | Ya instalado. |
 | Gestor de paquetes | **pnpm 11** con workspaces | — |
 | Postgres | 16 | — |
 
-**Gotcha conocido:** Expo no funciona bien con el `node_modules` simbolizado de pnpm. El repo incluye un `.npmrc` con `node-linker=hoisted` para evitar el fallo de resolución de módulos en Metro. Es una hora perdida si se descubre tarde.
+**Gotcha conocido:** Expo no resuelve bien el `node_modules` simbolizado de pnpm. El repo incluye un `.npmrc` con `node-linker=hoisted` para evitar el fallo de resolución de módulos en Metro. Es una hora perdida si se descubre tarde.
 
 ## 3. Arquitectura
 
