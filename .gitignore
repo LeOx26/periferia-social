@@ -38,3 +38,9 @@ apps/mobile/android/
 .vscode/
 *.iml
 *.log
+
+# Salida de compilación del paquete compartido
+packages/core/dist/
+apps/web/dist/
+apps/mobile/.expo/
+apps/mobile/dist/
