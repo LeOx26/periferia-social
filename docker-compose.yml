@@ -17,5 +17,27 @@ services:
       timeout: 5s
       retries: 10
 
+  auth-service:
+    build: ./backend/auth-service
+    container_name: periferia-auth
+    depends_on:
+      postgres:
+        # Espera a que Postgres acepte conexiones de verdad, no un sleep arbitrario.
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_URL: jdbc:postgresql://postgres:5432/authdb
+      DB_USER: periferia
+      DB_PASSWORD: periferia
+      JWT_SECRET: ${JWT_SECRET:-desarrollo-secreto-local-de-al-menos-32-bytes!}
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -fsS http://localhost:8081/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
 volumes:
   postgres-data:
