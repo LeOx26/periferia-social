@@ -105,7 +105,7 @@ importers:
         specifier: ^19.2.18
         version: 19.2.18
       react:
-        specifier: ^19.2.3
+        specifier: 19.2.3
         version: 19.2.3
       typescript:
         specifier: ^7.0.2
