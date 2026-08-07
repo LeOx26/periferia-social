@@ -2,13 +2,59 @@
 
 Red social mínima —autenticación, feed, publicaciones, perfil y likes en tiempo real— construida con dos microservicios Spring Boot, una web en React y una app móvil en React Native que comparte el 100 % de la lógica con la web.
 
-El documento de arquitectura completo, con las decisiones y sus alternativas descartadas, está en [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md).
+El documento de arquitectura completo, con las decisiones y sus alternativas descartadas, está en [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) y en [`docs/Periferia-Social-Arquitectura.pdf`](docs/Periferia-Social-Arquitectura.pdf).
+
+> **La respuesta a «¿lo habrías resuelto con microservicios?»** está en [Microservicios frente a monolito modular](#microservicios-frente-a-monolito-modular). Es la sección más importante de este documento.
+
+---
+
+## Dónde está cada requisito
+
+| Requisito del enunciado | Dónde está | Cómo comprobarlo |
+|---|---|---|
+| Login con JWT (POST) | `backend/auth-service` → `AuthController` | http://localhost:8081/docs |
+| Listar publicaciones (GET) | `backend/social-service` → `PostController` | http://localhost:8082/docs |
+| Crear publicación (POST) | `PostController.create` | Composer de la web |
+| Envío de like (POST) | `LikeController` | Botón ♡ del feed |
+| Ver perfil (GET) | `auth-service` → `UserController.me` | Pantalla «@usuario» |
+| Likes en tiempo real (WebSocket) | `LikeWebSocketHandler` | Dos ventanas del navegador |
+| Microservicios | `auth-service` + `social-service` | `docker compose ps` |
+| Seeder al iniciar | Migraciones Flyway `V2__*.sql` | 5 usuarios y 5 publicaciones |
+| Dockerfile por servicio | `backend/*/Dockerfile` | Multi-stage, usuario sin privilegios |
+| PostgreSQL con ORM | JPA/Hibernate, esquema por Flyway | `docker exec periferia-postgres psql -U periferia -l` |
+| Procedimientos almacenados | **Omitidos, justificado** | [Ver razón](#sin-procedimientos-almacenados-en-plpgsql) |
+| Pantallas web (login, perfil, feed) | `apps/web/src/screens/` | http://localhost:5173 |
+| TypeScript | Todo el frontend | `pnpm --filter web build` |
+| Estado agnóstico de plataforma | Zustand + TanStack Query en `packages/core` | Consumido por web y móvil |
+| App móvil que reutiliza la lógica | `apps/mobile` | [Reutilización medida](#reutilización-entre-web-y-móvil-medida) |
+| Paquete `core` compartido | `packages/core` | 711 líneas, 35 tests |
+| Swagger en `/docs` | Ambos servicios | :8081/docs y :8082/docs |
+| Pruebas unitarias e integración | 82 tests | [Pruebas](#pruebas) |
+| Manejo de errores | RFC 7807 Problem Details | Provoca un 409 dando like a lo tuyo |
+| Logs y auditoría | JSON con `correlationId` | `docker compose logs social-service` |
+| Observabilidad | Actuator + Prometheus + Grafana | http://localhost:3000 |
+| DDD, reglas en el dominio | `Post.java`, `PostTest.java` | 11 reglas en 42 ms |
+| Script de BD con usuarios | `V2__seed_users.sql` | UUID fijos, hash BCrypt |
+| Trade-offs documentados | [Decisiones y trade-offs](#decisiones-y-trade-offs) | Este documento |
+
+---
+
+## Si solo tienes diez minutos
+
+1. `docker compose up -d --build` y espera a que `docker compose ps` muestre los cinco contenedores.
+2. Abre http://localhost:8082/docs y mira el contrato de la API.
+3. `pnpm install && pnpm --filter @periferia/core build && pnpm --filter web dev`.
+4. Entra en http://localhost:5173 (las credenciales vienen precargadas), publica algo y da un like.
+5. Abre una segunda ventana en incógnito con `mafe`. **Da like en una y mira el contador en la otra.**
+6. Lee [Microservicios frente a monolito modular](#microservicios-frente-a-monolito-modular) y [Reutilización medida](#reutilización-entre-web-y-móvil-medida).
+
+Lo que mejor resume el trabajo son esos dos apartados y el archivo [`packages/core/src/hooks/feedCache.ts`](packages/core/src/hooks/feedCache.ts), donde vive la reconciliación entre el update optimista y el evento del WebSocket.
 
 ---
 
 ## Arranque
 
-Requisitos: Docker, Node 22+ y pnpm. Para el simulador de iOS, Xcode.
+**Requisitos:** Docker y pnpm. **No hace falta tener Java ni Maven instalados**: los servicios se compilan dentro de Docker con un build multi-stage. Para el frontend, Node 20 o superior (desarrollado y verificado con Node 26). Para el simulador de iOS, Xcode; la app móvil también se puede abrir en el navegador sin él.
 
 ```bash
 # 1. Backend completo: Postgres, los dos servicios, Prometheus y Grafana
@@ -98,7 +144,14 @@ El enunciado los marca opcionales y pide justificar la decisión. **No se han us
 - No puedes dar like dos veces.
 - Retirar un like inexistente es un no-op, no un error.
 
-Un dominio rico se testea sin infraestructura: las once reglas se verifican en **42 milisegundos**, sin Spring, sin base de datos y sin contenedores. La misma lógica en PL/pgSQL exigiría levantar Postgres y cargar el procedimiento para probar cada caso, quedaría fuera del control de versiones habitual y no sería refactorizable con las herramientas del lenguaje.
+Un dominio rico se testea sin infraestructura: las once reglas se verifican en **42 milisegundos**, sin Spring, sin base de datos y sin contenedores. Compruébalo:
+
+```bash
+cd backend/social-service && ./mvnw test -Dtest=PostTest
+# Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.042 s
+```
+
+La misma lógica en PL/pgSQL exigiría levantar Postgres y cargar el procedimiento para probar cada caso, quedaría fuera del control de versiones habitual y no sería refactorizable con las herramientas del lenguaje.
 
 La restricción `PRIMARY KEY (post_id, user_id)` sí existe en la base, pero como **red de seguridad ante concurrencia**, no como sede de la regla. Hay un test de integración que la comprueba insertando por SQL directo, sin pasar por el dominio.
 
@@ -119,6 +172,23 @@ Cada servicio es dueño de su base (`authdb` y `socialdb`) dentro de un único c
 **Lo que se pierde:** no se puede revocar un token antes de que expire. Se mitiga con expiración corta (60 minutos en desarrollo) y se resolvería con refresh tokens.
 
 **La evolución correcta es RS256 con JWKS:** `auth-service` firmaría con una clave privada que nunca sale de él y `social-service` solo necesitaría la pública, descargable de un endpoint estándar. Desaparece el secreto compartido y la rotación se vuelve automática. Es el modelo de Auth0, Keycloak y Cognito. No se implementó por tiempo.
+
+**Para comprobar que no hay comunicación entre servicios**, apaga `auth-service` y usa un token ya emitido:
+
+```bash
+TOKEN=$(curl -s -X POST http://localhost:8081/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"leo","password":"Periferia2026!"}' | python3 -c "import json,sys; print(json.load(sys.stdin)['accessToken'])")
+
+docker compose stop auth-service
+
+# El feed sigue funcionando con auth-service caído
+curl -s "http://localhost:8082/api/posts" -H "Authorization: Bearer $TOKEN"
+
+docker compose start auth-service
+```
+
+Y para comprobar que un token falsificado se rechaza sin consultar a nadie, basta con alterar un carácter de la firma: `social-service` responde `401`.
 
 ### Token en el query param del WebSocket
 
@@ -165,7 +235,22 @@ El enunciado se contradice: en el objetivo menciona «repositorio(s) separados b
 
 Lo único que se duplica por diseño son los adaptadores de almacenamiento: 17 líneas en la web (`localStorage`) y 35 en el móvil (Keychain/Keystore, con respaldo para Expo Web).
 
-**Fuera de `packages/core` no hay una sola llamada a `fetch`, ni un `new WebSocket`, ni una línea de lógica de negocio.** Ambas apps consumen los mismos hooks:
+Las cifras salen de:
+
+```bash
+find packages/core/src -name '*.ts' ! -name '*.test.ts' -exec cat {} + | wc -l
+find apps/web/src    -name '*.tsx' -exec cat {} + | wc -l
+find apps/mobile/src apps/mobile/App.tsx -name '*.tsx' -exec cat {} + | wc -l
+```
+
+**Fuera de `packages/core` no hay una sola llamada a `fetch`, ni un `new WebSocket`, ni una línea de lógica de negocio.** Verificable en un comando:
+
+```bash
+grep -rnE "fetch\(|new WebSocket" apps/web/src apps/mobile/src apps/mobile/App.tsx
+# sin resultados
+```
+
+Ambas apps consumen los mismos hooks:
 
 ```tsx
 const feed = usePosts()
@@ -173,7 +258,9 @@ const like = useLikePost()
 const realtimeStatus = useRealtimeLikes()
 ```
 
-Ese bloque es idéntico en `apps/web/src/screens/FeedScreen.tsx` y en `apps/mobile/src/screens/FeedScreen.tsx`. Lo que cambia es que uno pinta `<article>` y el otro `<View>`.
+Ese bloque es idéntico en [`apps/web/src/screens/FeedScreen.tsx`](apps/web/src/screens/FeedScreen.tsx) y en [`apps/mobile/src/screens/FeedScreen.tsx`](apps/mobile/src/screens/FeedScreen.tsx). Lo que cambia es que uno pinta `<article>` y el otro `<View>`.
+
+Conviene abrir los dos ficheros en paralelo: es la forma más rápida de comprobar que la reutilización es real y no una afirmación del README.
 
 La costura entre plataformas es **una sola función**:
 
