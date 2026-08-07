@@ -77,6 +77,23 @@ services:
     ports:
       - "5173:80"
 
+  # La app React Native renderizada en navegador con react-native-web.
+  # NO es la app nativa: es la misma capa de vista traducida a DOM, consumiendo
+  # el mismo packages/core. Está para poder revisar la interfaz móvil y la
+  # reutilización del core sin instalar Xcode ni el SDK de Android.
+  mobile-web:
+    build:
+      context: .
+      dockerfile: apps/mobile/Dockerfile
+    container_name: periferia-mobile-web
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      social-service:
+        condition: service_healthy
+    ports:
+      - "5174:80"
+
   prometheus:
     image: prom/prometheus:latest
     container_name: periferia-prometheus

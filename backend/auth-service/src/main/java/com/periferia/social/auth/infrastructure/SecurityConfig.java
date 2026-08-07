@@ -3,6 +3,7 @@ package com.periferia.social.auth.infrastructure;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -20,6 +21,9 @@ public class SecurityConfig {
         return http
             // Sin CSRF ni sesiones: la API es stateless y se autentica con Bearer token,
             // así que no hay cookie de sesión que un tercero pueda forzar.
+            // Toma el CorsConfigurationSource de CorsConfig. Sin esta línea el
+            // navegador bloquea toda respuesta: el front vive en otro puerto.
+            .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth

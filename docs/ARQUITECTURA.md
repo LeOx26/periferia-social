@@ -330,7 +330,13 @@ Levanta seis contenedores: `postgres` (con ambas bases creadas por script de ini
 
 El enunciado solo exige dockerizar los microservicios y la base de datos. Se incluyó también la web porque el coste es bajo —un build multi-stage que compila `packages/core` y sirve el resultado estático con nginx— y elimina por completo la fricción de puesta en marcha para quien evalúe.
 
-**La app móvil no se incluye a propósito.** Un simulador de iOS no se puede contenedorizar, y meter únicamente Expo Web daría la impresión falsa de que la aplicación nativa corre ahí. Se arranca con `pnpm --filter mobile ios`.
+**La app móvil se sirve como Expo Web en `:5174`, etiquetada como tal.** El simulador de iOS no se puede contenedorizar —solo corre en macOS bajo Xcode— pero `react-native-web` sí permite compilar la misma capa de vista a DOM. Se incluyó porque ahorra a quien evalúa instalar Xcode y descargar un simulador solo para comprobar la reutilización del core; y se etiqueta explícitamente como «no es la app nativa» para no dar una impresión falsa. Para verla como aplicación nativa: `pnpm --filter mobile ios`.
+
+### CORS
+
+Ambos servicios declaran explícitamente los orígenes permitidos (`security.cors.allowed-origins`) en lugar de usar comodín, porque se permite la cabecera `Authorization` y conviene saber exactamente quién puede enviarla.
+
+Este punto es un aviso que merece quedar escrito: **la ausencia de CORS es invisible desde `curl`**, porque la política la aplica el navegador y no el servidor. La API respondía `200` sin las cabeceras y toda verificación por línea de comandos pasaba, mientras que la aplicación web habría fallado silenciosamente al no poder leer ninguna respuesta. Hay un test de preflight (`CorsConfigTest`) precisamente para que no vuelva a pasar desapercibido.
 
 Nota sobre la configuración de la web: Vite compila las variables `VITE_*` dentro del bundle, así que las URLs del backend se fijan como `ARG` en tiempo de construcción. Apuntan a `localhost` porque quien resuelve esas direcciones es el navegador del evaluador, no el contenedor; los nombres internos de la red de Docker no resolverían desde fuera. Para un despliegue real se serviría la configuración en tiempo de ejecución, por ejemplo con un `config.js` generado al arrancar.
 

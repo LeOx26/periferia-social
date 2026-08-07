@@ -41,9 +41,9 @@ El documento de arquitectura completo, con las decisiones y sus alternativas des
 
 ## Si solo tienes diez minutos
 
-1. `docker compose up -d --build` — un solo comando, sin instalar nada más. Espera a que `docker compose ps` muestre los seis contenedores.
+1. `docker compose up -d --build` — un solo comando, sin instalar nada más. Espera a que `docker compose ps` muestre los siete contenedores.
 2. Entra en http://localhost:5173. Las credenciales vienen precargadas: pulsa Entrar, publica algo y da un like.
-3. Abre una segunda ventana en incógnito y entra con `mafe`. **Da like en una y mira el contador saltar en la otra**, sin recargar.
+3. Abre **http://localhost:5174** al lado: es la app móvil. Entra con `mafe`. **Da like en una pestaña y mira el contador saltar en la otra**, sin recargar. Eso es el WebSocket y el `core` compartido funcionando a la vez.
 4. Mira el contrato de la API en http://localhost:8082/docs y el dashboard en http://localhost:3000.
 5. Lee [Microservicios frente a monolito modular](#microservicios-frente-a-monolito-modular) y [Reutilización medida](#reutilización-entre-web-y-móvil-medida).
 
@@ -63,20 +63,30 @@ Node 20+ y pnpm solo hacen falta para desarrollar o para arrancar la app móvil 
 docker compose up -d --build
 ```
 
-Levanta seis contenedores —Postgres, los dos microservicios, la web, Prometheus y Grafana— y **la aplicación queda usable en http://localhost:5173 sin instalar nada más**. Ni Node, ni pnpm, ni Java.
+Levanta siete contenedores y deja **todo usable sin instalar nada más** — ni Node, ni pnpm, ni Java, ni Xcode:
 
-### Desarrollo, o para arrancar el móvil
+| | URL | Qué es |
+|---|---|---|
+| Web | http://localhost:5173 | La aplicación React |
+| **App móvil** | **http://localhost:5174** | La app React Native renderizada en navegador |
+| Swagger auth | http://localhost:8081/docs | |
+| Swagger social | http://localhost:8082/docs | |
+| Prometheus | http://localhost:9090 | |
+| Grafana (sin login) | http://localhost:3000 | Dashboard con 7 paneles |
+
+> **Sobre `:5174`.** Es la app de `apps/mobile` compilada con `react-native-web`: **la misma capa de vista** (`View`, `Text`, `Pressable`, `FlatList`, `StyleSheet`) traducida a DOM, consumiendo el mismo `packages/core`. Está para que puedas revisar la interfaz móvil y comprobar la reutilización **sin compilar nada ni abrir un simulador**.
+>
+> **No es la app nativa.** Para verla como tal hace falta el simulador (abajo). El simulador de iOS no se puede contenedorizar: solo corre en macOS bajo Xcode.
+
+### Desarrollo, o para ver la app nativa de verdad
 
 ```bash
 pnpm install
 pnpm --filter @periferia/core build
 
 pnpm --filter web dev            # web con recarga en caliente, :5173
-pnpm --filter mobile ios         # simulador de iOS
-pnpm --filter mobile web         # la app móvil en el navegador, sin Xcode
+pnpm --filter mobile ios         # simulador de iOS: la app nativa
 ```
-
-> **La app móvil no está en el compose.** Un simulador de iOS no se puede contenedorizar, y meter solo Expo Web daría una impresión falsa de que la app corre ahí. Se arranca con `pnpm`, como corresponde a una aplicación nativa.
 
 ### Credenciales
 

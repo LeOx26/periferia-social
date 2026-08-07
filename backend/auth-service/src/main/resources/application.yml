@@ -20,6 +20,11 @@ spring:
     locations: classpath:db/migration
 
 security:
+  cors:
+    # Orígenes del front. Declarados explícitamente y no con comodín porque
+    # se permite la cabecera Authorization: conviene saber quién puede enviarla.
+    # 5173 web · 5174 Expo Web en contenedor · 8081 Expo Web en desarrollo
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:5174,http://localhost:8081,http://localhost:19006}
   jwt:
     # Debe ser idéntico al de social-service: él verifica en local lo que aquí se firma.
     secret: ${JWT_SECRET:desarrollo-secreto-local-de-al-menos-32-bytes!}
