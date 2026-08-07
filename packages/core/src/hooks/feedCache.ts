@@ -1,4 +1,4 @@
-import type { FeedPage, LikeEvent } from '../domain/types'
+import type { FeedPage, LikeEvent } from '../domain/types.js'
 
 /**
  * Aplica el contador autoritativo que llega por WebSocket.

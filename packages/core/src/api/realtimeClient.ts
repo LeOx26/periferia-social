@@ -1,6 +1,6 @@
-import { getConfig } from '../config'
-import { likeEventSchema } from '../domain/schemas'
-import type { LikeEvent } from '../domain/types'
+import { getConfig } from '../config.js'
+import { likeEventSchema } from '../domain/schemas.js'
+import type { LikeEvent } from '../domain/types.js'
 
 export type RealtimeStatus = 'idle' | 'connecting' | 'open' | 'closed'
 

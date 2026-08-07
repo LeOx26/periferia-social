@@ -1,6 +1,6 @@
 import { create } from 'zustand'
-import { getConfig } from '../config'
-import type { LoginResult, UserSummary } from '../domain/types'
+import { getConfig } from '../config.js'
+import type { LoginResult, UserSummary } from '../domain/types.js'
 
 const SESSION_KEY = 'periferia.session'
 

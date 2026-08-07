@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchFeed } from '../api/postsApi'
-import { useAuthStore } from '../store/authStore'
-import { queryKeys } from './queryKeys'
+import { fetchFeed } from '../api/postsApi.js'
+import { useAuthStore } from '../store/authStore.js'
+import { queryKeys } from './queryKeys.js'
 
 export function usePosts(page = 0, size = 20) {
   const token = useAuthStore((state) => state.token)

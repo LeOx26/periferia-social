@@ -1,7 +1,7 @@
-import { getConfig } from '../config'
-import { loginResultSchema, profileSchema } from '../domain/schemas'
-import type { LoginResult, Profile } from '../domain/types'
-import { apiFetch } from './httpClient'
+import { getConfig } from '../config.js'
+import { loginResultSchema, profileSchema } from '../domain/schemas.js'
+import type { LoginResult, Profile } from '../domain/types.js'
+import { apiFetch } from './httpClient.js'
 
 export function login(username: string, password: string): Promise<LoginResult> {
   return apiFetch(getConfig().authBaseUrl, '/api/auth/login', {

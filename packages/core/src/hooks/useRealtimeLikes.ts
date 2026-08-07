@@ -1,10 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { createRealtimeClient, type RealtimeStatus } from '../api/realtimeClient'
-import type { FeedPage } from '../domain/types'
-import { useAuthStore } from '../store/authStore'
-import { applyLikeEvent } from './feedCache'
-import { queryKeys } from './queryKeys'
+import { createRealtimeClient, type RealtimeStatus } from '../api/realtimeClient.js'
+import type { FeedPage } from '../domain/types.js'
+import { useAuthStore } from '../store/authStore.js'
+import { applyLikeEvent } from './feedCache.js'
+import { queryKeys } from './queryKeys.js'
 
 /**
  * Conecta al WebSocket de likes y escribe el contador autoritativo en el cache

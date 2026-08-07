@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchProfile } from '../api/authApi'
-import { useAuthStore } from '../store/authStore'
-import { queryKeys } from './queryKeys'
+import { fetchProfile } from '../api/authApi.js'
+import { useAuthStore } from '../store/authStore.js'
+import { queryKeys } from './queryKeys.js'
 
 export function useProfile() {
   const token = useAuthStore((state) => state.token)

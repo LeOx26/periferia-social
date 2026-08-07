@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { likePost, unlikePost } from '../api/postsApi'
-import type { FeedPage } from '../domain/types'
-import { useAuthStore } from '../store/authStore'
-import { applyOptimisticLike } from './feedCache'
-import { queryKeys } from './queryKeys'
+import { likePost, unlikePost } from '../api/postsApi.js'
+import type { FeedPage } from '../domain/types.js'
+import { useAuthStore } from '../store/authStore.js'
+import { applyOptimisticLike } from './feedCache.js'
+import { queryKeys } from './queryKeys.js'
 
 export function useLikePost(page = 0, size = 20) {
   const token = useAuthStore((state) => state.token)

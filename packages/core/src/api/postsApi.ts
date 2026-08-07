@@ -1,7 +1,7 @@
-import { getConfig } from '../config'
-import { feedPageSchema, likeResponseSchema, postViewSchema } from '../domain/schemas'
-import type { FeedPage, LikeResponse, PostView } from '../domain/types'
-import { apiFetch } from './httpClient'
+import { getConfig } from '../config.js'
+import { feedPageSchema, likeResponseSchema, postViewSchema } from '../domain/schemas.js'
+import type { FeedPage, LikeResponse, PostView } from '../domain/types.js'
+import { apiFetch } from './httpClient.js'
 
 export function fetchFeed(token: string, page = 0, size = 20): Promise<FeedPage> {
   return apiFetch(getConfig().socialBaseUrl, `/api/posts?page=${page}&size=${size}`, {
