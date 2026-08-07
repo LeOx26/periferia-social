@@ -3,6 +3,7 @@ package com.periferia.social.feed.application;
 import com.periferia.social.feed.domain.InvalidPostMessageException;
 import com.periferia.social.feed.domain.Post;
 import com.periferia.social.feed.domain.PostRepository;
+import com.periferia.social.feed.infrastructure.FeedMetrics;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -31,7 +32,7 @@ class PublishPostTest {
     void setUp() {
         repository = mock(PostRepository.class);
         when(repository.save(any(Post.class))).thenAnswer(call -> call.getArgument(0));
-        publish = new PublishPost(repository, Clock.fixed(FIXED, ZoneOffset.UTC));
+        publish = new PublishPost(repository, Clock.fixed(FIXED, ZoneOffset.UTC), mock(FeedMetrics.class));
     }
 
     @Test

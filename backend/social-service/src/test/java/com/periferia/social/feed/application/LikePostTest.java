@@ -5,6 +5,7 @@ import com.periferia.social.feed.domain.Post;
 import com.periferia.social.feed.domain.PostNotFoundException;
 import com.periferia.social.feed.domain.PostRepository;
 import com.periferia.social.feed.domain.SelfLikeNotAllowedException;
+import com.periferia.social.feed.infrastructure.FeedMetrics;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -35,7 +36,7 @@ class LikePostTest {
     @BeforeEach
     void setUp() {
         repository = mock(PostRepository.class);
-        like = new LikePost(repository, CLOCK);
+        like = new LikePost(repository, CLOCK, mock(FeedMetrics.class));
         unlike = new UnlikePost(repository);
 
         post = Post.publish(AUTHOR, "leo", "Hola", CLOCK);

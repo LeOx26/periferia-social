@@ -39,5 +39,56 @@ services:
       retries: 12
       start_period: 40s
 
+  social-service:
+    build: ./backend/social-service
+    container_name: periferia-social
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_URL: jdbc:postgresql://postgres:5432/socialdb
+      DB_USER: periferia
+      DB_PASSWORD: periferia
+      # Exactamente el mismo valor que en auth-service: es lo ÚNICO que ambos
+      # servicios comparten, y es el precio de que social no llame a auth.
+      JWT_SECRET: ${JWT_SECRET:-desarrollo-secreto-local-de-al-menos-32-bytes!}
+    ports:
+      - "8082:8082"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -fsS http://localhost:8082/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: periferia-prometheus
+    volumes:
+      - ./ops/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - auth-service
+      - social-service
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: periferia-grafana
+    environment:
+      # Acceso anónimo con rol de administrador: es un entorno de demostración y
+      # no tiene sentido pedirle credenciales al evaluador. En producción, jamás.
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+    volumes:
+      - ./ops/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./ops/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
 volumes:
   postgres-data:

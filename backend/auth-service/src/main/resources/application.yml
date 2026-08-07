@@ -39,3 +39,11 @@ management:
   endpoint:
     health:
       show-details: always
+  metrics:
+    distribution:
+      # Sin esto Micrometer solo publica count/sum/max, no los buckets del
+      # histograma, y `histogram_quantile` en Prometheus no devuelve nada.
+      percentiles-histogram:
+        http.server.requests: true
+      slo:
+        http.server.requests: 10ms, 50ms, 100ms, 250ms, 500ms, 1s
