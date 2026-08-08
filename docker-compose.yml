@@ -12,7 +12,17 @@ services:
       - postgres-data:/var/lib/postgresql/data
       - ./ops/postgres/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U periferia"]
+      # Comprueba que AMBAS bases existen y aceptan consultas, no solo que el
+      # proceso responda. `pg_isready` devuelve 0 aunque la base no exista, así
+      # que no detectaría un fallo del script de inicialización.
+      #
+      # El `-d` es obligatorio: sin él, psql y pg_isready usan el nombre de
+      # usuario como base por defecto, y Postgres registra un FATAL cada 5
+      # segundos por una base "periferia" que nunca ha existido.
+      test:
+        - CMD-SHELL
+        - psql -U periferia -d authdb -c 'SELECT 1' >/dev/null 2>&1 &&
+          psql -U periferia -d socialdb -c 'SELECT 1' >/dev/null 2>&1
       interval: 5s
       timeout: 5s
       retries: 10
