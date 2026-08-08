@@ -1,0 +1,17 @@
+{
+  "name": "periferia-social",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Red social con microservicios Spring Boot, web React y app React Native que comparten la lógica",
+  "scripts": {
+    "build": "pnpm --filter @periferia/core build",
+    "test": "pnpm --filter @periferia/core test",
+    "web": "pnpm --filter @periferia/core build && pnpm --filter web dev",
+    "mobile": "pnpm --filter @periferia/core build && pnpm --filter mobile ios",
+    "mobile:web": "pnpm --filter @periferia/core build && pnpm --filter mobile web"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@11.20.0"
+}

@@ -82,11 +82,13 @@ Levanta siete contenedores y deja **todo usable sin instalar nada más** — ni 
 
 ```bash
 pnpm install
-pnpm --filter @periferia/core build
 
-pnpm --filter web dev            # web con recarga en caliente, :5173
-pnpm --filter mobile ios         # simulador de iOS: la app nativa
+pnpm web                         # web con recarga en caliente, :5173
+pnpm mobile                      # simulador de iOS: la app nativa
+pnpm mobile:web                  # la app móvil en el navegador, sin Xcode
 ```
+
+Los tres compilan `packages/core` antes de arrancar, así que no hay que recordar el orden.
 
 ### Credenciales
 
@@ -295,7 +297,7 @@ cd backend/auth-service   && ./mvnw test
 cd backend/social-service && ./mvnw test
 
 # Core compartido — 35 tests
-pnpm --filter @periferia/core test
+pnpm test
 ```
 
 | Nivel | Qué cubre |
