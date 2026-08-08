@@ -4,6 +4,12 @@ Red social mínima —autenticación, feed, publicaciones, perfil y likes en tie
 
 El documento de arquitectura completo, con las decisiones y sus alternativas descartadas, está en [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) y en [`docs/Periferia-Social-Arquitectura.pdf`](docs/Periferia-Social-Arquitectura.pdf).
 
+## 🎬 Video demostrativo
+
+**[Ver el video (4 min)](https://github.com/LeOx26/periferia-social/releases/download/v1.0.0/periferia-social-demo.mp4)** — recorrido completo: `docker compose up`, Swagger, login y publicación en la web, **likes propagándose en tiempo real entre la web y la app móvil**, dashboard de Grafana y las suites de pruebas.
+
+---
+
 > **La respuesta a «¿lo habrías resuelto con microservicios?»** está en [Microservicios frente a monolito modular](#microservicios-frente-a-monolito-modular). Es la sección más importante de este documento.
 
 ---

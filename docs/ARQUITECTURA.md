@@ -3,6 +3,8 @@
 **Autor:** Leonel Benítez
 **Fecha:** 2026-08-07
 **Plazo de ejecución:** 2 días
+**Repositorio:** https://github.com/LeOx26/periferia-social
+**Video demostrativo (4 min):** https://github.com/LeOx26/periferia-social/releases/download/v1.0.0/periferia-social-demo.mp4
 
 ---
 

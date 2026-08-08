@@ -44,3 +44,7 @@ packages/core/dist/
 apps/web/dist/
 apps/mobile/.expo/
 apps/mobile/dist/
+
+# Video demo: se publica como release asset, no en el historial de git
+*.mov
+*.mp4
